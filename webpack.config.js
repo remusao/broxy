@@ -41,7 +41,7 @@ const configBase = {
   resolve: {
     extensions: ['.ts', '.js', '.json', '.elm'],
   },
-  devtool: 'inline-source-map',
+  // devtool: 'inline-source-map',
   node: {
     __dirname: false,
   },
