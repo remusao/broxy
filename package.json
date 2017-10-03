@@ -2,11 +2,12 @@
   "name": "broxy",
   "version": "0.0.1",
   "description": "The Privacy Bro! Proxy to preserve your privacy.",
-  "main": "main.js",
+  "main": "src/main.ts",
   "scripts": {
-    "start": "electron .",
+    "prestart": "yarn run build",
     "watch": "webpack --progress --colors --watch",
-    "build": "webpack --optimize-minimize"
+    "start": "electron ./dist/main.bundle.js",
+    "build": "webpack"
   },
   "repository": "https://github.com/remusao/broxy.git",
   "keywords": [
@@ -16,16 +17,24 @@
   "author": "remusao",
   "license": "MIT",
   "devDependencies": {
+    "elm": "0.18.0",
     "elm-webpack-loader": "4.3.1",
-    "eslint": "4.3.0",
-    "eslint-config-airbnb": "15.1.0",
-    "eslint-plugin-import": "2.7.0",
-    "eslint-plugin-jsx-a11y": "5.1.1",
-    "eslint-plugin-react": "7.1.0"
+    "html-webpack-plugin": "2.30.1",
+    "ts-loader": "2.3.7",
+    "tslint": "5.7.0",
+    "tslint-loader": "3.5.3",
+    "typescript": "2.5.3",
+    "webpack": "3.6.0"
   },
   "dependencies": {
+    "browser-core": "./browser-core-1.0.1.tgz",
     "electron": "1.7.8",
-    "elm": "0.18.0",
-    "webpack": "3.6.0"
+
+    "fast-url-parser": "1.1.3",
+    "node-fetch": "1.7.3",
+    "node-persist": "2.1.0",
+    "pouchdb": "6.3.4",
+    "text-encoding": "0.6.4",
+    "tldjs": "2.2.0"
   }
 }

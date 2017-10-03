@@ -1,6 +1,6 @@
-port module Broxy exposing (..)
+port module Broxy exposing (main)
 
-import Html exposing (..)
+import Html exposing (program, Html, div, text)
 import Json.Encode exposing (Value)
 import Json.Decode exposing (decodeValue, succeed, string, field, int)
 import Json.Decode.Extra exposing ((|:))
@@ -23,12 +23,13 @@ main =
 
 
 type alias SocksProxy =
-    { proxyPort : Int, proxyHost : String }
+    { proxyPort : Int
+    , proxyHost : String
+    }
 
 
 type alias Model =
-    { proxy : Maybe SocksProxy
-    }
+    { proxy : Maybe SocksProxy }
 
 
 type Msg
@@ -51,7 +52,7 @@ view { proxy } =
             div []
                 [ text "You can now connect to the socks proxy using:"
                 , text
-                    (proxyHost ++ ":" ++ (toString proxyPort))
+                    (proxyHost ++ ":" ++ toString proxyPort)
                 ]
 
 
@@ -66,7 +67,7 @@ update msg model =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.batch
         [ receiveSocksProxyInfo decodeSocksProxy
         ]
@@ -77,8 +78,8 @@ decodeSocksProxy x =
     let
         decoder =
             succeed SocksProxy
-                |: (field "proxyPort" int)
-                |: (field "proxyHost" string)
+                |: field "proxyPort" int
+                |: field "proxyHost" string
     in
         case decodeValue decoder x of
             Ok proxy ->

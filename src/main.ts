@@ -1,42 +1,34 @@
-const electron = require('electron');
+import { join } from 'path';
+import { format } from 'url';
 
-// Module to control application life.
-const app = electron.app;
-// Module to create native browser window.
-const BrowserWindow = electron.BrowserWindow;
-
-const ipcMain = electron.ipcMain;
-
-const path = require('path');
-const url = require('url');
-
-// Run Cliqz in Electron!
-const cliqz = require('browser-core');
-
-const cliqzApp = new cliqz.App();
-console.log(cliqzApp);
-cliqzApp.start();
-
-// const cliqz = require('browser-core');
-// console.log('cliqz', cliqz);
+import { App } from 'browser-core';
+import { app, BrowserWindow, ipcMain } from 'electron';
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
-let mainWindow;
-
+let mainWindow: Electron.BrowserWindow;
+let cliqzApp: any;
 
 function createWindow() {
+  try {
+    // Run Cliqz in Electron!
+    cliqzApp = new App();
+    cliqzApp.start();
+  } catch (ex) {
+    console.error('exception', ex, ex.stack);
+  }
+
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    width: 800,
+    frame: process.platform === 'darwin',
     height: 600,
     titleBarStyle: 'hidden-inset', // macOS only
-    frame: process.platform === 'darwin',
+    width: 800,
   });
 
   // and load the index.html of the app.
-  mainWindow.loadURL(url.format({
-    pathname: path.join(__dirname, 'src', 'static', 'index.html'),
+  mainWindow.loadURL(format({
+    pathname: join(__dirname, 'index.html'),
     protocol: 'file:',
     slashes: true,
   }));
@@ -49,7 +41,7 @@ function createWindow() {
     // Dereference the window object, usually you would store windows
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
-    mainWindow = null;
+    app.quit();
   });
 }
 
@@ -58,16 +50,14 @@ function createWindow() {
 // Some APIs can only be used after this event occurs.
 app.on('ready', createWindow);
 
-
 // Listen for async message from renderer process
-ipcMain.on('getCliqzInfo', (event) => {
+ipcMain.on('getCliqzInfo', (event: any) => {
   const info = cliqzApp.modules['proxy-peer'].background.proxyPeer.httpLifeCycleHijack.socksProxy.server.address();
   event.sender.send('cliqzInfo', {
-    proxyPort: info.port,
     proxyHost: info.address,
+    proxyPort: info.port,
   });
 });
-
 
 // Listen for sync message from renderer process
 // ipcMain.on('sync', (event, arg) => {
@@ -77,7 +67,6 @@ ipcMain.on('getCliqzInfo', (event) => {
 //   // Send async message to renderer process
 //   mainWindow.webContents.send('ping', 5);
 // });
-
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {

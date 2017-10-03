@@ -1,0 +1,13 @@
+{
+    "compileOnSave": false,
+    "compilerOptions": {
+        "allowJs": true,
+        "moduleResolution": "node",
+        "noUnusedLocals": true,
+        "pretty": true,
+        "removeComments": true,
+        "skipLibCheck": true,
+        "sourceMap": true,
+        "strict": true
+    }
+}

@@ -1,23 +1,64 @@
 const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
-module.exports = {
-  entry: path.join(__dirname, 'src', 'static', 'index.js'),
+const excludeFolders = [
+  /elm-stuff/,
+  /node_modules/,
+];
+
+const configBase = {
   output: {
     path: path.join(__dirname, 'dist'),
-    publicPath: '/assets/',
-    filename: 'bundle.js',
+    filename: '[name].bundle.js',
   },
   module: {
-    loaders: [
+    rules: [
+      {
+        test: /\.ts$/,
+        enforce: 'pre',
+        loader: 'tslint-loader',
+        exclude: excludeFolders,
+        options: {
+          typeCheck: true,
+          emitErrors: true
+        }
+      },
+      {
+        test: /\.ts$/,
+        loader: 'ts-loader',
+        exclude: excludeFolders,
+        options: {
+          transpileOnly: true,
+        },
+      },
       {
         test: /\.elm$/,
-        exclude: [/elm-stuff/, /node_modules/],
+        exclude: excludeFolders,
         loader: 'elm-webpack-loader?verbose=true&warn=true',
       },
     ],
   },
   resolve: {
-    extensions: ['.js', '.elm'],
+    extensions: ['.ts', '.js', '.json', '.elm'],
   },
-  devServer: { inline: true },
+  devtool: 'inline-source-map',
+  node: {
+    __dirname: false,
+  },
+
 };
+
+
+module.exports = [
+  Object.assign({
+    entry: { main: path.join(__dirname, 'src', 'main.ts') },
+    target: 'electron-main',
+  }, configBase),
+  Object.assign({
+    entry: { renderer: path.join(__dirname, 'src', 'static', 'renderer.ts') },
+    target: 'electron-renderer',
+    plugins: [new HtmlWebpackPlugin({
+      title: 'Broxy',
+    })],
+  }, configBase),
+];
