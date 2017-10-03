@@ -302,13 +302,9 @@ brorand@^1.0.1:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/brorand/-/brorand-1.1.0.tgz#12c25efe40a45e3c323eb8675a0a0ce57b22371f"
 
-browser-core@./browser-core-1.0.1.tgz:
-  version "1.0.1"
-  resolved "./browser-core-1.0.1.tgz#95ce734988c5754d20ef67b71b1c359e90a0ea19"
-
-browser-core@./browser-core-1.0.2.tgz:
-  version "1.0.2"
-  resolved "./browser-core-1.0.2.tgz#19badf1a7555cf037d02d283cd6ba254d342c67f"
+browser-core@./browser-core-1.0.8.tgz:
+  version "1.0.8"
+  resolved "./browser-core-1.0.8.tgz#47b81f2cc1f793f419f5020769fc5e49d2f3be1c"
 
 browserify-aes@^1.0.0, browserify-aes@^1.0.4:
   version "1.0.8"

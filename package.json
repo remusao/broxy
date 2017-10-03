@@ -7,7 +7,7 @@
     "prestart": "yarn run build",
     "watch": "webpack --progress --colors --watch",
     "start": "electron ./dist/main.bundle.js",
-    "build": "webpack"
+    "build": "node generate-elm-types.js src/interfaces.ts src/elm/ && webpack"
   },
   "repository": "https://github.com/remusao/broxy.git",
   "keywords": [
@@ -27,7 +27,7 @@
     "webpack": "3.6.0"
   },
   "dependencies": {
-    "browser-core": "./browser-core-1.0.2.tgz",
+    "browser-core": "./browser-core-1.0.8.tgz",
     "electron": "1.7.8",
     "fast-url-parser": "1.1.3",
     "node-fetch": "1.7.3",

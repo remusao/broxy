@@ -1,17 +1,13 @@
 // Inject Elm App in the window
 import { ipcRenderer } from 'electron';
 import { Broxy } from '../elm/Broxy';
+import { ISocksProxy } from '../interfaces';
 
 const elmApp = Broxy.fullscreen();
 
 // This file is required by the index.html file and will
 // be executed in the renderer process for that window.
 // All of the Node.js APIs are available in this process.
-
-interface ISocksProxy {
-    proxyPort: number;
-    proxyHost: string;
-}
 
 // Deal with main.js/Elm interop using ports
 // All message passing shall be converted here.

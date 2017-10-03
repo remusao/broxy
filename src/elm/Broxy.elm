@@ -1,5 +1,6 @@
 port module Broxy exposing (main)
 
+import Types exposing (ISocksProxy)
 import Html exposing (program, Html, div, text)
 import Json.Encode exposing (Value)
 import Json.Decode exposing (decodeValue, succeed, string, field, int)
@@ -22,19 +23,13 @@ main =
         }
 
 
-type alias SocksProxy =
-    { proxyPort : Int
-    , proxyHost : String
-    }
-
-
 type alias Model =
-    { proxy : Maybe SocksProxy }
+    { proxy : Maybe ISocksProxy }
 
 
 type Msg
     = NoOp
-    | SocksProxyRunning (Maybe SocksProxy)
+    | SocksProxyRunning (Maybe ISocksProxy)
 
 
 init : ( Model, Cmd Msg )
@@ -77,7 +72,7 @@ decodeSocksProxy : Value -> Msg
 decodeSocksProxy x =
     let
         decoder =
-            succeed SocksProxy
+            succeed ISocksProxy
                 |: field "proxyPort" int
                 |: field "proxyHost" string
     in
