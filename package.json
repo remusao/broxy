@@ -6,9 +6,9 @@
   "scripts": {
     "start": "electron .",
     "watch": "webpack --progress --colors --watch",
-    "build": "webpack --production"
+    "build": "webpack --optimize-minimize"
   },
-  "repository": "https://github.com/remusao/broxy",
+  "repository": "https://github.com/remusao/broxy.git",
   "keywords": [
     "Broxy",
     "Privacy"
@@ -16,6 +16,7 @@
   "author": "remusao",
   "license": "MIT",
   "devDependencies": {
+    "elm-webpack-loader": "4.3.1",
     "eslint": "4.3.0",
     "eslint-config-airbnb": "15.1.0",
     "eslint-plugin-import": "2.7.0",
@@ -23,6 +24,8 @@
     "eslint-plugin-react": "7.1.0"
   },
   "dependencies": {
-    "electron": "^1.7.8"
+    "electron": "1.7.8",
+    "elm": "0.18.0",
+    "webpack": "3.6.0"
   }
 }

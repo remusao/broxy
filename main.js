@@ -36,7 +36,7 @@ function createWindow() {
 
   // and load the index.html of the app.
   mainWindow.loadURL(url.format({
-    pathname: path.join(__dirname, 'index.html'),
+    pathname: path.join(__dirname, 'src', 'static', 'index.html'),
     protocol: 'file:',
     slashes: true,
   }));
@@ -60,13 +60,12 @@ app.on('ready', createWindow);
 
 
 // Listen for async message from renderer process
-ipcMain.on('getCliqzInfo', (event, arg) => {
-  // Print 1
-  console.log('ASYNC MESSAGE', event, arg);
-  // Reply on async message from renderer process
-  // TODO - expose an action in proxy-peer background
-  const info = cliqzApp.modules['proxy-peer'].background.proxyPeer.httpLifeCycleHijack.socksProxy.server;
-  event.sender.send('cliqzInfo', info.address());
+ipcMain.on('getCliqzInfo', (event) => {
+  const info = cliqzApp.modules['proxy-peer'].background.proxyPeer.httpLifeCycleHijack.socksProxy.server.address();
+  event.sender.send('cliqzInfo', {
+    proxyPort: info.port,
+    proxyHost: info.address,
+  });
 });
 
 
