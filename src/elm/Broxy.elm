@@ -1,16 +1,19 @@
 port module Broxy exposing (main)
 
-import Types exposing (ISocksProxy)
+-- WARNING: the TsElmInterfaces file is automatically generated at build-time
+-- from declarations found in the file `src/ts-elm-interfaces.ts`. Each
+-- `interface` declared in this file will generate an Elm type, a subscription,
+-- a port and a decoder.
+
+import TsElmInterfaces exposing (..)
+
+
+-- Normal Elm imports
+
 import Html exposing (program, Html, div, text)
-import Json.Encode exposing (Value)
-import Json.Decode exposing (decodeValue, succeed, string, field, int)
-import Json.Decode.Extra exposing ((|:))
 
 
-port receiveSocksProxyInfo : (Value -> msg) -> Sub msg
-
-
-port requestSocksProxyInfo : () -> Cmd msg
+port requestISocksProxy : () -> Cmd msg
 
 
 main : Program Never Model Msg
@@ -24,61 +27,53 @@ main =
 
 
 type alias Model =
-    { proxy : Maybe ISocksProxy }
+    { proxy : Maybe ISocksProxy
+    , error : Maybe String
+    }
 
 
 type Msg
-    = NoOp
-    | SocksProxyRunning (Maybe ISocksProxy)
+    = TsElmInterface TypescriptMsg
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { proxy = Nothing }, requestSocksProxyInfo () )
+    ( { proxy = Nothing, error = Nothing }, requestISocksProxy () )
 
 
 view : Model -> Html Msg
-view { proxy } =
-    case proxy of
-        Nothing ->
-            text "No proxy information available yet"
+view { proxy, error } =
+    case error of
+        Just err ->
+            text "Error while communicating from main to view"
 
-        Just { proxyPort, proxyHost } ->
-            div []
-                [ text "You can now connect to the socks proxy using:"
-                , text
-                    (proxyHost ++ ":" ++ toString proxyPort)
-                ]
+        Nothing ->
+            case proxy of
+                Nothing ->
+                    text "No proxy information available yet"
+
+                Just { proxyPort, proxyHost } ->
+                    div []
+                        [ text "You can now connect to the socks proxy using:"
+                        , text
+                            (proxyHost ++ ":" ++ toString proxyPort)
+                        ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        NoOp ->
-            ( model, Cmd.none )
+        TsElmInterface tsMsg ->
+            case tsMsg of
+                SubISocksProxy socks ->
+                    ( { model | proxy = Just socks }, Cmd.none )
 
-        SocksProxyRunning socks ->
-            ( { model | proxy = socks }, Cmd.none )
+                MessagingError err ->
+                    ( { model | error = Just err }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
-        [ receiveSocksProxyInfo decodeSocksProxy
+        [ Sub.map TsElmInterface tsSubscriptions
         ]
-
-
-decodeSocksProxy : Value -> Msg
-decodeSocksProxy x =
-    let
-        decoder =
-            succeed ISocksProxy
-                |: field "proxyPort" int
-                |: field "proxyHost" string
-    in
-        case decodeValue decoder x of
-            Ok proxy ->
-                SocksProxyRunning (Just proxy)
-
-            Err _ ->
-                NoOp

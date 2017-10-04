@@ -7,7 +7,7 @@
     "prestart": "yarn run build",
     "watch": "webpack --progress --colors --watch",
     "start": "electron ./dist/main.bundle.js",
-    "build": "node generate-elm-types.js src/interfaces.ts src/elm/ && webpack"
+    "build": "node generate-elm-types.js src/static/renderer.ts src/elm/ && webpack"
   },
   "repository": "https://github.com/remusao/broxy.git",
   "keywords": [
@@ -19,11 +19,16 @@
   "devDependencies": {
     "elm": "0.18.0",
     "elm-webpack-loader": "4.3.1",
+    "eslint": "4.3.0",
+    "eslint-config-airbnb": "15.1.0",
+    "eslint-config-airbnb-base": "12.0.1",
+    "eslint-plugin-import": "2.7.0",
+    "eslint-plugin-jsx-a11y": "5.1.1",
+    "eslint-plugin-react": "7.1.0",
     "html-webpack-plugin": "2.30.1",
     "ts-loader": "2.3.7",
     "tslint": "5.7.0",
     "tslint-loader": "3.5.3",
-    "typescript": "2.5.3",
     "webpack": "3.6.0"
   },
   "dependencies": {
@@ -34,6 +39,7 @@
     "node-persist": "2.1.0",
     "pouchdb": "6.3.4",
     "text-encoding": "0.6.4",
-    "tldjs": "2.2.0"
+    "tldjs": "2.2.0",
+    "typescript": "2.5.3"
   }
 }

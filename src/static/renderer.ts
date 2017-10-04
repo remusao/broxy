@@ -1,7 +1,8 @@
 // Inject Elm App in the window
-import { ipcRenderer } from 'electron';
 import { Broxy } from '../elm/Broxy';
-import { ISocksProxy } from '../interfaces';
+
+import { ipcRenderer } from 'electron';
+import { ISocksProxy } from '../ts-elm-interfaces';
 
 const elmApp = Broxy.fullscreen();
 
@@ -11,13 +12,22 @@ const elmApp = Broxy.fullscreen();
 
 // Deal with main.js/Elm interop using ports
 // All message passing shall be converted here.
-//
-// NOTE: port.subscribe asks for something from Elm to Javascript (update -> javascript)
-// NOTE: port.send sends a message from Javascript to Elm (subscript -> update)
-elmApp.ports.requestSocksProxyInfo.subscribe(() => {
+
+export interface ISocksProxy {
+    proxyPort: number;
+    proxyHost: string;
+}
+
+// -------------------------------------------------------------------------- //
+// from Elm to Typescript (listen to Elm commands)
+// -------------------------------------------------------------------------- //
+elmApp.ports.requestISocksProxy.subscribe(() => {
   ipcRenderer.send('getCliqzInfo');
 });
 
+// -------------------------------------------------------------------------- //
+// from Typescript to Elm (listen to internal events from main.ts)
+// -------------------------------------------------------------------------- //
 ipcRenderer.on('cliqzInfo', (event: any, arg: ISocksProxy) => {
-  elmApp.ports.receiveSocksProxyInfo.send(arg);
+  elmApp.ports.receiveISocksProxy.send(arg);
 });

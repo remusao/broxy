@@ -2,87 +2,63 @@ const fs = require('fs');
 const path = require('path');
 const ts = require('typescript');
 
-
-const typeScriptToElmType = {
-  [ts.SyntaxKind.BooleanKeyword]: 'Bool',
-  [ts.SyntaxKind.StringKeyword]: 'String',
-  [ts.SyntaxKind.NumberKeyword]: 'Int',
-};
+const elmModuleName = 'TsElmInterfaces';
+const elmMsgPrefix = 'Sub';
+const elmTypeScriptMsgType = 'TypescriptMsg';
 
 
-const reverse = {};
-Object.keys(ts.SyntaxKind).forEach(name => {
-  reverse[ts.SyntaxKind[name]] = name;
-});
-
-
-function convertType(node) {
-  const kind = node.kind;
-  // Deal with primitive data types
-  if (kind === ts.SyntaxKind.BooleanKeyword ||
-      kind === ts.SyntaxKind.StringKeyword ||
-      kind === ts.SyntaxKind.NumberKeyword) {
-    return typeScriptToElmType[kind];
+function generateElmType(node) {
+  switch (node.kind) {
+    case ts.SyntaxKind.BooleanKeyword:
+      return 'Bool';
+    case ts.SyntaxKind.StringKeyword:
+      return 'String';
+    case ts.SyntaxKind.NumberKeyword:
+      return 'Float';
+    case ts.SyntaxKind.TupleType: {
+      const elementTypes = node.elementTypes.map(generateElmType);
+      return `(${elementTypes.join(', ')})`;
+    }
+    case ts.SyntaxKind.ArrayType:
+      return `(Array ${generateElmType(node.elementType)})`;
+    case ts.SyntaxKind.JSDocNullableType:
+      return `(Maybe ${generateElmType(node.type)})`;
+    default:
+      return 'JEncode.Value';
   }
-
-  // Deal with composite data types
-
-  if (kind === ts.SyntaxKind.TupleType) {
-    const elementTypes = node.elementTypes.map(convertType);
-    return `(${elementTypes.join(', ')})`;
-  }
-
-  if (kind === ts.SyntaxKind.ArrayType) {
-    return `List ${convertType(node.elementType)}`;
-  }
-
-  if (kind === ts.SyntaxKind.JSDocNullableType) {
-    return `Maybe ${convertType(node.type)}`;
-  }
-
-  return 'JEncode.Value';
 }
 
 
-function generateElmDeclaration(types) {
-  const results = [
-    'module Types exposing (..)',
-    'import Json.Encode as JEncode',
-  ];
-
-  types.forEach(({name, members}) => {
-    let declaration = `type alias ${name} = \n  {`;
-    declaration += members.map(({ field, type }) => ` ${field} : ${type}`).join('\n  ,');
-    //   declaration += `, ${field} : ${type}\n  `;
-    // });
-    declaration += '\n  }';
-    results.push(declaration);
-  });
-
-  return results.join('\n\n');
+function generateElmDecoder(node) {
+  switch (node.kind) {
+    case ts.SyntaxKind.BooleanKeyword:
+      return 'JDecode.bool';
+    case ts.SyntaxKind.StringKeyword:
+      return 'JDecode.string';
+    case ts.SyntaxKind.NumberKeyword:
+      return 'JDecode.float';
+    case ts.SyntaxKind.TupleType: {
+      // TODO
+      return 'decodeTuple_is_not_implemented';
+    }
+    case ts.SyntaxKind.ArrayType:
+      return `(JDecode.array ${generateElmDecoder(node.elementType)})`;
+    case ts.SyntaxKind.JSDocNullableType:
+      return `(JDecode.nullable ${generateElmDecoder(node.type)})`;
+    default:
+      return `decode${generateElmType(node)}_is_not_implemented`;
+  }
 }
 
 
-function generateElmFromInterfaces(source) {
-  const types = [];
+function collectInterfaceDeclarations(source) {
+  const declarations = [];
   const nodes = [source];
 
   while (nodes.length > 0) {
     const node = nodes.splice(0, 1)[0];
-    const kind = node.kind;
-    if (kind === ts.SyntaxKind.InterfaceDeclaration) {
-      const name = node.name.escapedText;
-      const members = [];
-      node.members.forEach(member => {
-        members.push({
-          field: member.name.escapedText,
-          type: convertType(member.type),
-        });
-      });
-      types.push({
-        name,
-        members,
-      });
+    if (node.kind === ts.SyntaxKind.InterfaceDeclaration) {
+      declarations.push(node);
     } else {
       ts.forEachChild(node, (child) => {
         nodes.push(child);
@@ -90,23 +66,116 @@ function generateElmFromInterfaces(source) {
     }
   }
 
-  return generateElmDeclaration(types);
+  return declarations;
+}
+
+
+function generateElmHeader() {
+  return [
+    `port module ${elmModuleName} exposing (..)`,
+  ];
+}
+
+
+function generateElmImports() {
+  return [`
+import Json.Encode as JEncode
+import Json.Decode as JDecode
+import Json.Decode.Extra exposing ((|:))
+import Array exposing (Array)
+  `];
+}
+
+
+function generateElmTypes(types) {
+  return types.map(({ name, members }) => `
+type alias ${name} =
+  {${members.map(({ field, type }) => ` ${field} : ${generateElmType(type)}`).join('\n  ,')}
+  }
+`);
+}
+
+
+function generateElmMsgType(types) {
+  return [`
+type ${elmTypeScriptMsgType}
+  = MessagingError String
+  | ${types.map(({ name }) => `${elmMsgPrefix}${name} ${name}`).join('\n  | ')}
+`];
+}
+
+
+function generateElmDecoders(types) {
+  return types.map(({ name, members }) => `
+decode${name} : JEncode.Value -> ${elmTypeScriptMsgType}
+decode${name} x =
+  let
+    decoder =
+      JDecode.succeed ${name} ${members.map(({ field, type }) => `\n        |: JDecode.field "${field}" ${generateElmDecoder(type)}`).join('')}
+  in
+    case JDecode.decodeValue decoder x of
+        Ok result ->
+            ${elmMsgPrefix}${name} result
+        Err err ->
+            MessagingError err
+`);
+}
+
+
+function generateElmSubscriptions(types) {
+  return [`
+tsSubscriptions : Sub ${elmTypeScriptMsgType}
+tsSubscriptions =
+    Sub.batch
+        [ ${types.map(({ name }) => `receive${name} decode${name}`).join('\n        , ')}
+        ]
+`];
+}
+
+
+function generateElmPorts(types) {
+  return [`
+${types.map(({ name }) => `port receive${name} : (JEncode.Value -> msg) -> Sub msg`).join('\n')}
+`];
+}
+
+
+function generateElmModule(source) {
+  // Extract interfaces and convert them to Elm types
+  const types = collectInterfaceDeclarations(source).map(declaration => ({
+    name: declaration.name.escapedText,
+    members: declaration.members.map(member => ({
+      field: member.name.escapedText,
+      type: member.type,
+    })),
+  }));
+
+  // Generate Elm module content
+  return [
+    ...generateElmHeader(types),
+    ...generateElmImports(types),
+    ...generateElmTypes(types),
+    ...generateElmMsgType(types),
+    ...generateElmDecoders(types),
+    ...generateElmSubscriptions(types),
+    ...generateElmPorts(types),
+  ].join('\n');
 }
 
 
 function convert(inputFile, outputFile, callback) {
   fs.readFile(inputFile, 'utf8', (readErr, data) => {
     if (readErr) {
-      callback(err);
+      callback(readErr);
     } else {
       try {
         const parsedSource = ts.createSourceFile(
           inputFile,
           data,
           ts.ScriptTarget.ES6,
-          /*setParentNodes */ false,
+          true, /* setParentNodes */
         );
-        const elmDeclaration = generateElmFromInterfaces(parsedSource);
+        const elmDeclaration = generateElmModule(parsedSource);
         fs.writeFile(outputFile, elmDeclaration, 'utf8', callback);
       } catch (ex) {
         callback(ex);
@@ -120,7 +189,7 @@ function main() {
   const argv = process.argv;
   if (argv.length > 2) {
     const inputFile = argv[2];
-    const outputFile = path.join(argv[3], 'Types.elm');
+    const outputFile = path.join(argv[3], `${elmModuleName}.elm`);
 
     if (!inputFile.endsWith('.ts')) {
       console.error('First argument should be a Typescript source file');
