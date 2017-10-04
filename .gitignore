@@ -4,3 +4,5 @@ dist/
 elm-stuff/
 node_modules/
 browser-core-*
+tmp/*
+src/elm/TsElmInterfaces.elm
