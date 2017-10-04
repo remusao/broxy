@@ -2,7 +2,6 @@
 import { Broxy } from '../elm/Broxy';
 
 import { ipcRenderer } from 'electron';
-import { ISocksProxy } from '../ts-elm-interfaces';
 
 const elmApp = Broxy.fullscreen();
 

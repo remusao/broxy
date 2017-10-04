@@ -7,7 +7,7 @@
     "prestart": "yarn run build",
     "watch": "webpack --progress --colors --watch",
     "start": "electron ./dist/main.bundle.js",
-    "build": "node generate-elm-types.js src/static/renderer.ts src/elm/ && webpack"
+    "build": "node generate-elm-ts-ipc.js src/static/renderer.ts src/elm/ && webpack"
   },
   "repository": "https://github.com/remusao/broxy.git",
   "keywords": [
