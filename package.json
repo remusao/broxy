@@ -32,12 +32,12 @@
     "webpack": "3.6.0"
   },
   "dependencies": {
-    "browser-core": "https://github.com/remusao/broxy/releases/download/0.0.1/browser-core-1.0.8.tgz",
+    "browser-core": "./browser-core-1.0.59.tgz",
     "electron": "1.7.8",
     "fast-url-parser": "1.1.3",
     "node-fetch": "1.7.3",
     "node-persist": "2.1.0",
-    "pouchdb": "6.3.4",
+    "pouchdb-browser": "6.3.4",
     "text-encoding": "0.6.4",
     "tldjs": "2.2.0",
     "typescript": "2.5.3"

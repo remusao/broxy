@@ -1,26 +1,16 @@
 import { join } from 'path';
 import { format } from 'url';
 
-import { App } from 'browser-core';
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow /* , ipcMain */} from 'electron';
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow: Electron.BrowserWindow;
-let cliqzApp: any;
 
 function createWindow() {
-  try {
-    // Run Cliqz in Electron!
-    cliqzApp = new App();
-    cliqzApp.start();
-  } catch (ex) {
-    console.error('exception', ex, ex.stack);
-  }
-
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    frame: process.platform === 'darwin',
+    frame: true, // process.platform === 'darwin',
     height: 600,
     titleBarStyle: 'hidden-inset', // macOS only
     width: 800,
@@ -49,15 +39,6 @@ function createWindow() {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', createWindow);
-
-// Listen for async message from renderer process
-ipcMain.on('getCliqzInfo', (event: any) => {
-  const info = cliqzApp.modules['proxy-peer'].background.proxyPeer.httpLifeCycleHijack.socksProxy.server.address();
-  event.sender.send('cliqzInfo', {
-    proxyHost: info.address,
-    proxyPort: info.port,
-  });
-});
 
 // Listen for sync message from renderer process
 // ipcMain.on('sync', (event, arg) => {
