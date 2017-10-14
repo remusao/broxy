@@ -13,6 +13,7 @@ function createWindow() {
   try {
     // Run Cliqz in Electron!
     cliqzApp = new App();
+    global.CLIQZ = { app: cliqzApp };
     cliqzApp.start();
   } catch (ex) {
     console.error('exception', ex, ex.stack);
