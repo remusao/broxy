@@ -13,16 +13,16 @@ const configBase = {
   },
   module: {
     rules: [
-      {
-        test: /\.ts$/,
-        enforce: 'pre',
-        loader: 'tslint-loader',
-        exclude: excludeFolders,
-        options: {
-          typeCheck: true,
-          emitErrors: true
-        }
-      },
+//      {
+//        test: /\.ts$/,
+//        enforce: 'pre',
+//        loader: 'tslint-loader',
+//        exclude: excludeFolders,
+//        options: {
+//          typeCheck: true,
+//          emitErrors: true,
+//        },
+//      },
       {
         test: /\.ts$/,
         loader: 'ts-loader',
@@ -41,7 +41,7 @@ const configBase = {
   resolve: {
     extensions: ['.ts', '.js', '.json', '.elm'],
   },
-  // devtool: 'inline-source-map',
+  devtool: 'inline-source-map',
   node: {
     __dirname: false,
   },
