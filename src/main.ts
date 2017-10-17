@@ -1,9 +1,7 @@
 import { join } from 'path';
 import { format } from 'url';
 
-import { App } from 'browser-core';
-import { app, BrowserWindow, ipcMain } from 'electron';
-import * as WebSocket from 'ws';
+import { app, BrowserWindow } from 'electron';
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -11,18 +9,9 @@ let mainWindow: Electron.BrowserWindow;
 let cliqzApp: any;
 
 function createWindow() {
-  try {
-    // Run Cliqz in Electron!
-    cliqzApp = new App();
-    global.CLIQZ = { app: cliqzApp };
-    cliqzApp.start();
-  } catch (ex) {
-    console.error('exception', ex, ex.stack);
-  }
-
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    frame: process.platform === 'darwin',
+    frame: true,
     height: 600,
     titleBarStyle: 'hidden-inset', // macOS only
     width: 800,
@@ -52,14 +41,6 @@ function createWindow() {
 // Some APIs can only be used after this event occurs.
 app.on('ready', createWindow);
 
-// Listen for async message from renderer process
-ipcMain.on('getCliqzInfo', (event: any) => {
-  const info = cliqzApp.modules['proxy-peer'].background.proxyPeer.httpLifeCycleHijack.socksProxy.server.address();
-  event.sender.send('cliqzInfo', {
-    proxyHost: info.address,
-    proxyPort: info.port,
-  });
-});
 
 // Listen for sync message from renderer process
 // ipcMain.on('sync', (event, arg) => {
@@ -87,26 +68,6 @@ app.on('activate', () => {
   }
 });
 
-const wss = new WebSocket.Server({ port: 8080 });
-
-wss.on('connection', function connection(ws) {
-  ws.on('message', function incoming(data) {
-
-    const message = JSON.parse(data);
-    console.log('received: ', message);
-
-    if (message.functionName === 'onBeforeRequest') {
-      const response = CLIQZ.app.modules['webrequest-pipeline'].background.onBeforeRequest(...message.args);
-
-      ws.send(JSON.stringify({
-        response,
-        responseId: message.uuid,
-      }));
-    }
-
-  });
-
-});
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
