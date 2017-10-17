@@ -3,6 +3,7 @@ import { format } from 'url';
 
 import { App } from 'browser-core';
 import { app, BrowserWindow, ipcMain } from 'electron';
+import * as WebSocket from 'ws';
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -13,6 +14,7 @@ function createWindow() {
   try {
     // Run Cliqz in Electron!
     cliqzApp = new App();
+    global.CLIQZ = { app: cliqzApp };
     cliqzApp.start();
   } catch (ex) {
     console.error('exception', ex, ex.stack);
@@ -83,6 +85,27 @@ app.on('activate', () => {
   if (mainWindow === null) {
     createWindow();
   }
+});
+
+const wss = new WebSocket.Server({ port: 8080 });
+
+wss.on('connection', function connection(ws) {
+  ws.on('message', function incoming(data) {
+
+    const message = JSON.parse(data);
+    console.log('received: ', message);
+
+    if (message.functionName === 'onBeforeRequest') {
+      const response = CLIQZ.app.modules['webrequest-pipeline'].background.onBeforeRequest(...message.args);
+
+      ws.send(JSON.stringify({
+        response,
+        responseId: message.uuid,
+      }));
+    }
+
+  });
+
 });
 
 // In this file you can include the rest of your app's specific main process
