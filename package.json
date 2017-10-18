@@ -6,7 +6,7 @@
   "scripts": {
     "prestart": "yarn run build",
     "watch": "webpack --progress --colors --watch",
-    "start": "electron ./dist/main.bundle.js",
+    "start": "electron --inspect=5858 ./dist/main.bundle.js",
     "build": "node generate-elm-ts-ipc.js src/static/renderer.ts src/elm/ && webpack"
   },
   "repository": "https://github.com/remusao/broxy.git",
@@ -32,7 +32,7 @@
     "webpack": "3.6.0"
   },
   "dependencies": {
-    "browser-core": "https://github.com/remusao/broxy/releases/download/0.0.1/browser-core-1.0.8.tgz",
+    "browser-core": "https://github.com/remusao/broxy/releases/download/0.0.1/electron-webrequest-0.1.0.tgz",
     "electron": "1.7.8",
     "fast-url-parser": "1.1.3",
     "node-fetch": "1.7.3",
@@ -40,6 +40,7 @@
     "pouchdb": "6.3.4",
     "text-encoding": "0.6.4",
     "tldjs": "2.2.0",
-    "typescript": "2.5.3"
+    "typescript": "2.5.3",
+    "ws": "^3.2.0"
   }
 }
