@@ -5,6 +5,12 @@ import * as WebSocket from 'ws';
 // Inject Elm App in the window
 import { Broxy } from '../elm/Broxy';
 
+const webRequestEvents = [
+  'onBeforeRequest',
+  'onBeforeSendHeaders',
+  'onHeadersReceived',
+];
+
 const elmApp = Broxy.fullscreen();
 
 let cliqzApp: any;
@@ -40,23 +46,31 @@ elmApp.ports.requestISocksProxy.subscribe(() => {
   ipcRenderer.send('getCliqzInfo');
 });
 
+const handleWebRequest = (data, respond) => {
+  const message = JSON.parse(data);
+  const webRequest = CLIQZ.app.modules['webrequest-pipeline'].background;
+  const eventName = message.functionName;
+  console.log('received: ', message);
+
+  if (!webRequestEvents.includes(eventName) || !(eventName in webRequest)) {
+    return;
+  }
+
+  // wrapping in a promise as eventHandler may or may not return one
+  Promise.resolve()
+    .then(() => webRequest[eventName](...message.args))
+    .then(response =>
+       respond(
+         JSON.stringify({
+           response,
+           responseId: message.uuid,
+         })
+       )
+    );
+};
+
 const wss = new WebSocket.Server({ port: 8080 });
 
-wss.on('connection', function connection(ws) {
-  ws.on('message', function incoming(data) {
-
-    const message = JSON.parse(data);
-    console.log('received: ', message);
-
-    if (message.functionName === 'onBeforeRequest') {
-      const response = CLIQZ.app.modules['webrequest-pipeline'].background.onBeforeRequest(...message.args);
-
-      ws.send(JSON.stringify({
-        response,
-        responseId: message.uuid,
-      }));
-    }
-
-  });
-
-});
+wss.on('connection', ws =>
+  ws.on('message', data => handleWebRequest(data, ws.send.bind(ws)))
+);
