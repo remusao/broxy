@@ -12,5 +12,9 @@
         + `cp browser-core* ../broxy`
 2. Install dependencies using `yarn`:
     + `yarn install`
-3. Run the app:
+3. Build the app
+    + `yarn run build`
+    + or in development to watch file change
+      + `yarn run watch`
+4. Run the app:
     + `yarn start`

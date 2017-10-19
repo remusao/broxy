@@ -1,5 +1,6 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const ElmTypesPlugin = require('./elm-types-webpack-plugin');
 
 const excludeFolders = [
   /elm-stuff/,
@@ -57,8 +58,14 @@ module.exports = [
   Object.assign({
     entry: { renderer: path.join(__dirname, 'src', 'static', 'renderer.ts') },
     target: 'electron-renderer',
-    plugins: [new HtmlWebpackPlugin({
-      title: 'Broxy',
-    })],
+    plugins: [
+      new HtmlWebpackPlugin({
+        title: 'Broxy',
+      }),
+      new ElmTypesPlugin({
+        inputFile: path.join(__dirname, 'src', 'static', 'renderer.ts'),
+        outputPath: path.join(__dirname, 'src', 'elm'),
+      }),
+    ],
   }, configBase),
 ];

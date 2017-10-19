@@ -4,10 +4,9 @@
   "description": "The Privacy Bro! Proxy to preserve your privacy.",
   "main": "src/main.ts",
   "scripts": {
-    "prestart": "yarn run build",
     "watch": "webpack --progress --colors --watch",
     "start": "electron --inspect=5858 ./dist/main.bundle.js",
-    "build": "node generate-elm-ts-ipc.js src/static/renderer.ts src/elm/ && webpack"
+    "build": "webpack"
   },
   "repository": "https://github.com/remusao/broxy.git",
   "keywords": [
