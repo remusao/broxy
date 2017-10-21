@@ -16,6 +16,9 @@ import Html exposing (program, Html, div, text)
 port requestISocksProxy : () -> Cmd msg
 
 
+port requestICliqzModules : () -> Cmd msg
+
+
 main : Program Never Model Msg
 main =
     program
@@ -29,6 +32,7 @@ main =
 type alias Model =
     { proxy : Maybe ISocksProxy
     , error : Maybe String
+    , modules : Maybe ICliqzModules
     }
 
 
@@ -38,11 +42,11 @@ type Msg
 
 init : ( Model, Cmd Msg )
 init =
-    ( { proxy = Nothing, error = Nothing }, requestISocksProxy () )
+    ( { proxy = Nothing, error = Nothing, modules = Nothing }, requestISocksProxy () )
 
 
-view : Model -> Html Msg
-view { proxy, error } =
+proxyInfo : { proxy : Maybe ISocksProxy, error : Maybe String } -> Html Msg
+proxyInfo { proxy, error } =
     case error of
         Just err ->
             text "Error while communicating from main to view"
@@ -58,6 +62,19 @@ view { proxy, error } =
                         , text
                             (proxyHost ++ ":" ++ toString proxyPort)
                         ]
+
+
+modulesInfo : List String -> Html Msg
+modulesInfo modules =
+    div [] [ text "modules:" ]
+
+
+view : Model -> Html Msg
+view { proxy, error, modules } =
+    div []
+        [ proxyInfo { proxy = proxy, error = error }
+        , modulesInfo modules
+        ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
