@@ -1,6 +1,7 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ElmTypesPlugin = require('./elm-types-webpack-plugin');
+const WatchIgnorePlugin = require("webpack").WatchIgnorePlugin;
 
 const excludeFolders = [
   /elm-stuff/,
@@ -59,6 +60,9 @@ module.exports = [
     entry: { renderer: path.join(__dirname, 'src', 'static', 'renderer.ts') },
     target: 'electron-renderer',
     plugins: [
+      new WatchIgnorePlugin([
+        path.resolve(__dirname, './src/elm/TsElmInterfaces.elm'),
+      ]),
       new HtmlWebpackPlugin({
         title: 'Broxy',
       }),

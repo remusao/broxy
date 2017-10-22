@@ -13,17 +13,20 @@ module.exports = class ElmTypesPlugin {
     return path.join(this.outputPath, `${elmModuleName}.elm`);
   }
 
-  apply(compiler) {
-    compiler.plugin('run', (compiler, callback) => {
-      console.log('Generate Elm type from typescript interfaces...');
-      convert(this.inputFile, this.outputFile, (err) => {
-        if (err) {
-          console.error('Error while generating Elm types', err);
-        } else {
-          console.log('Generation successful!');
-          callback();
-        }
-      });
+  build(compiler, callback) {
+    console.log('Generate Elm type from typescript interfaces...');
+    convert(this.inputFile, this.outputFile, (err) => {
+      if (err) {
+        console.error('Error while generating Elm types', err);
+      } else {
+        console.log('Generation successful!');
+        callback();
+      }
     });
+  }
+
+  apply(compiler) {
+    compiler.plugin('run', this.build.bind(this));
+    compiler.plugin('emit', this.build.bind(this));
   }
 };
