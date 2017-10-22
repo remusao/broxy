@@ -20,7 +20,7 @@ export interface ISocksProxy {
 }
 
 export interface ICliqzModules {
-  modules: Array<string>;
+  modules: string[];
 }
 
 const elmApp = Broxy.fullscreen();
@@ -32,14 +32,15 @@ global.CLIQZ = {
   app: cliqzApp,
 };
 
+elmApp.ports.receiveICliqzModules.send({
+  modules: cliqzApp.moduleList.map(m => m.name),
+});
+
 cliqzApp.start().then(() => {
   const info = cliqzApp.modules['proxy-peer'].background.proxyPeer.httpLifeCycleHijack.socksProxy.server.address();
   elmApp.ports.receiveISocksProxy.send({
     proxyHost: info.address,
     proxyPort: info.port,
-  });
-  elmApp.ports.receiveICliqzModules.send({
-    modules: cliqzApp.modulesList,
   });
 });
 // This file is required by the index.html file and will

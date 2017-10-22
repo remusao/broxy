@@ -10,13 +10,8 @@ import TsElmInterfaces exposing (..)
 
 -- Normal Elm imports
 
-import Html exposing (program, Html, div, text)
-
-
-port requestISocksProxy : () -> Cmd msg
-
-
-port requestICliqzModules : () -> Cmd msg
+import Html exposing (program, Html, div, text, ul, li)
+import Array exposing (..)
 
 
 main : Program Never Model Msg
@@ -42,7 +37,7 @@ type Msg
 
 init : ( Model, Cmd Msg )
 init =
-    ( { proxy = Nothing, error = Nothing, modules = Nothing }, requestISocksProxy () )
+    ( { proxy = Nothing, error = Nothing, modules = Nothing }, Cmd.none )
 
 
 proxyInfo : { proxy : Maybe ISocksProxy, error : Maybe String } -> Html Msg
@@ -64,9 +59,29 @@ proxyInfo { proxy, error } =
                         ]
 
 
-modulesInfo : List String -> Html Msg
+modulesInfo : Maybe ICliqzModules -> Html Msg
 modulesInfo modules =
-    div [] [ text "modules:" ]
+    let
+        renderModule : String -> Html Msg
+        renderModule name =
+            li []
+                [ text <| "[ " ++ name ++ " ]"
+                ]
+
+        renderModules : Maybe ICliqzModules -> List (Html Msg)
+        renderModules modules =
+            case modules of
+                Nothing ->
+                    [ text "No modules started" ]
+
+                Just { modules } ->
+                    toList <| Array.map renderModule modules
+    in
+        div []
+            [ Html.hr [] []
+            , text "modules:"
+            , ul [] <| renderModules modules
+            ]
 
 
 view : Model -> Html Msg
@@ -84,6 +99,9 @@ update msg model =
             case tsMsg of
                 SubISocksProxy socks ->
                     ( { model | proxy = Just socks }, Cmd.none )
+
+                SubICliqzModules modules ->
+                    ( { model | modules = Just modules }, Cmd.none )
 
                 MessagingError err ->
                     ( { model | error = Just err }, Cmd.none )
