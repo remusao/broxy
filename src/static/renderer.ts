@@ -11,6 +11,18 @@ const webRequestEvents = [
   'onHeadersReceived',
 ];
 
+// Deal with main.js/Elm interop using ports
+// All message passing shall be converted here.
+
+export interface ISocksProxy {
+  proxyPort: number;
+  proxyHost: string;
+}
+
+export interface ICliqzModules {
+  modules: string[];
+}
+
 const elmApp = Broxy.fullscreen();
 
 let cliqzApp: any;
@@ -19,6 +31,10 @@ cliqzApp = new App();
 global.CLIQZ = {
   app: cliqzApp,
 };
+
+elmApp.ports.receiveICliqzModules.send({
+  modules: cliqzApp.moduleList.map(m => m.name),
+});
 
 cliqzApp.start().then(() => {
   const info = cliqzApp.modules['proxy-peer'].background.proxyPeer.httpLifeCycleHijack.socksProxy.server.address();
@@ -31,13 +47,6 @@ cliqzApp.start().then(() => {
 // be executed in the renderer process for that window.
 // All of the Node.js APIs are available in this process.
 
-// Deal with main.js/Elm interop using ports
-// All message passing shall be converted here.
-
-export interface ISocksProxy {
-  proxyPort: number;
-  proxyHost: string;
-}
 
 // -------------------------------------------------------------------------- //
 // from Elm to Typescript (listen to Elm commands)

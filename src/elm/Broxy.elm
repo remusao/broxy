@@ -10,10 +10,8 @@ import TsElmInterfaces exposing (..)
 
 -- Normal Elm imports
 
-import Html exposing (program, Html, div, text)
-
-
-port requestISocksProxy : () -> Cmd msg
+import Html exposing (program, Html, div, text, ul, li)
+import Array exposing (..)
 
 
 main : Program Never Model Msg
@@ -29,6 +27,7 @@ main =
 type alias Model =
     { proxy : Maybe ISocksProxy
     , error : Maybe String
+    , modules : Maybe ICliqzModules
     }
 
 
@@ -38,11 +37,11 @@ type Msg
 
 init : ( Model, Cmd Msg )
 init =
-    ( { proxy = Nothing, error = Nothing }, requestISocksProxy () )
+    ( { proxy = Nothing, error = Nothing, modules = Nothing }, Cmd.none )
 
 
-view : Model -> Html Msg
-view { proxy, error } =
+proxyInfo : { proxy : Maybe ISocksProxy, error : Maybe String } -> Html Msg
+proxyInfo { proxy, error } =
     case error of
         Just err ->
             text "Error while communicating from main to view"
@@ -60,6 +59,39 @@ view { proxy, error } =
                         ]
 
 
+modulesInfo : Maybe ICliqzModules -> Html Msg
+modulesInfo modules =
+    let
+        renderModule : String -> Html Msg
+        renderModule name =
+            li []
+                [ text <| "[ " ++ name ++ " ]"
+                ]
+
+        renderModules : Maybe ICliqzModules -> List (Html Msg)
+        renderModules modules =
+            case modules of
+                Nothing ->
+                    [ text "No modules started" ]
+
+                Just { modules } ->
+                    toList <| Array.map renderModule modules
+    in
+        div []
+            [ Html.hr [] []
+            , text "modules:"
+            , ul [] <| renderModules modules
+            ]
+
+
+view : Model -> Html Msg
+view { proxy, error, modules } =
+    div []
+        [ proxyInfo { proxy = proxy, error = error }
+        , modulesInfo modules
+        ]
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -67,6 +99,9 @@ update msg model =
             case tsMsg of
                 SubISocksProxy socks ->
                     ( { model | proxy = Just socks }, Cmd.none )
+
+                SubICliqzModules modules ->
+                    ( { model | modules = Just modules }, Cmd.none )
 
                 MessagingError err ->
                     ( { model | error = Just err }, Cmd.none )
