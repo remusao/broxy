@@ -11,6 +11,8 @@ import TsElmInterfaces exposing (..)
 -- Normal Elm imports
 
 import Html exposing (program, Html, div, text)
+import Array exposing (empty, Array)
+import Maybe exposing (withDefault)
 
 
 port requestISocksProxy : () -> Cmd msg
@@ -64,7 +66,7 @@ proxyInfo { proxy, error } =
                         ]
 
 
-modulesInfo : List String -> Html Msg
+modulesInfo : Array String -> Html Msg
 modulesInfo modules =
     div [] [ text "modules:" ]
 
@@ -73,7 +75,14 @@ view : Model -> Html Msg
 view { proxy, error, modules } =
     div []
         [ proxyInfo { proxy = proxy, error = error }
-        , modulesInfo modules
+        , modulesInfo
+            (case modules of
+                Nothing ->
+                    empty
+
+                Just { modules } ->
+                    modules
+            )
         ]
 
 
@@ -87,6 +96,9 @@ update msg model =
 
                 MessagingError err ->
                     ( { model | error = Just err }, Cmd.none )
+
+                SubICliqzModules modules ->
+                    ( { model | modules = Just modules }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg

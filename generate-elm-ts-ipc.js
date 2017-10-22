@@ -1,4 +1,3 @@
-const fs = require('fs');
 const path = require('path');
 const convert = require('./build-helpers/generate-elm-ts-ipc.js');
 

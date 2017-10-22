@@ -20,12 +20,13 @@ export interface ISocksProxy {
 }
 
 export interface ICliqzModules {
-  modules: Array<string>;
+  modules: string[];
 }
 
 const elmApp = Broxy.fullscreen();
 
 let cliqzApp: any;
+
 // Run Cliqz in Electron!
 cliqzApp = new App();
 global.CLIQZ = {
@@ -42,10 +43,10 @@ cliqzApp.start().then(() => {
     modules: cliqzApp.modulesList,
   });
 });
+
 // This file is required by the index.html file and will
 // be executed in the renderer process for that window.
 // All of the Node.js APIs are available in this process.
-
 
 // -------------------------------------------------------------------------- //
 // from Elm to Typescript (listen to Elm commands)
@@ -56,11 +57,11 @@ elmApp.ports.requestISocksProxy.subscribe(() => {
 
 const handleWebRequest = (data, respond) => {
   const message = JSON.parse(data);
-  const webRequest = CLIQZ.app.modules['webrequest-pipeline'].background;
+  const webRequest = cliqzApp.modules['webrequest-pipeline'].background;
   const eventName = message.functionName;
   console.log('received: ', message);
 
-  if (!webRequestEvents.includes(eventName) || !(eventName in webRequest)) {
+  if (webRequestEvents.indexOf(eventName) === -1 || !(eventName in webRequest)) {
     return;
   }
 
