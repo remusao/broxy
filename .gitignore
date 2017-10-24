@@ -6,3 +6,4 @@ node_modules/
 browser-core-*
 tmp/*
 src/elm/TsElmInterfaces.elm
+src/elm/Broxy.d.ts

@@ -5,6 +5,10 @@ const elmModuleName = 'TsElmInterfaces';
 const elmMsgPrefix = 'Sub';
 const elmTypeScriptMsgType = 'TypescriptMsg';
 
+// TODO - also parse Elm code and generate declaration for ports from Elm to
+// typescript side. This is needed to have type-safe communication in both ways.
+
+
 function generateElmType(node) {
   switch (node.kind) {
     case ts.SyntaxKind.BooleanKeyword:
@@ -77,11 +81,8 @@ function generateElmHeader() {
 
 function generateElmImports() {
   return [`
-import Json.Encode as JEncode
-import Json.Decode as JDecode
-import Json.Decode.Extra exposing ((|:))
 import Array exposing (Array)
-  `];
+`];
 }
 
 
@@ -125,7 +126,7 @@ function generateElmSubscriptions(types) {
 tsSubscriptions : Sub ${elmTypeScriptMsgType}
 tsSubscriptions =
     Sub.batch
-        [ ${types.map(({ name }) => `receive${name} decode${name}`).join('\n        , ')}
+        [ ${types.map(({ name }) => `receive${name} Sub${name}`).join('\n        , ')}
         ]
 `];
 }
@@ -133,8 +134,32 @@ tsSubscriptions =
 
 function generateElmPorts(types) {
   return [`
-${types.map(({ name }) => `port receive${name} : (JEncode.Value -> msg) -> Sub msg`).join('\n')}
+${types.map(({ name }) => `port receive${name} : (${name} -> msg) -> Sub msg`).join('\n')}
 `];
+}
+
+
+function generateTypescriptDeclaration(types) {
+  return `
+declare module 'Broxy';
+export as namespace Elm
+
+import { ${types.map(({ name }) => name).join(', ')} } from '../static/renderer';
+
+export interface App {
+  ports: {
+  ${types.map(({ name }) => `
+    receive${name}: {
+      // TODO - subscribe(callback)
+      send(v: ${name}): void,
+    },`.trim()).join('\n')}
+  };
+}
+
+export namespace Broxy {
+  export function fullscreen(): App;
+}
+`;
 }
 
 
@@ -149,32 +174,59 @@ function generateElmModule(source) {
   }));
 
   // Generate Elm module content
-  return [
-    ...generateElmHeader(types),
-    ...generateElmImports(types),
-    ...generateElmTypes(types),
-    ...generateElmMsgType(types),
-    ...generateElmDecoders(types),
-    ...generateElmSubscriptions(types),
-    ...generateElmPorts(types),
-  ].join('\n');
+  return {
+    typescriptFile: generateTypescriptDeclaration(types),
+    elmFile: [
+      ...generateElmHeader(types),
+      ...generateElmImports(types),
+      ...generateElmTypes(types),
+      ...generateElmMsgType(types),
+      ...generateElmSubscriptions(types),
+      ...generateElmPorts(types),
+    ].join('\n'),
+  };
 }
 
 
-function convert(inputFile, outputFile, callback) {
-  fs.readFile(inputFile, 'utf8', (readErr, data) => {
+function write(path, content) {
+  return new Promise((resolve, reject) => {
+    try {
+      fs.writeFile(path, content, 'utf8', resolve);
+    } catch (ex) {
+      reject(ex);
+    }
+  });
+}
+
+function convert(options, callback) {
+  const {
+    elmInput,
+    elmOutput,
+    tsInput,
+    tsOutput,
+  } = options;
+
+  fs.readFile(tsInput, 'utf8', (readErr, data) => {
     if (readErr) {
       callback(readErr);
     } else {
       try {
         const parsedSource = ts.createSourceFile(
-          inputFile,
+          tsInput,
           data,
           ts.ScriptTarget.ES6,
           true, /* setParentNodes */
         );
-        const elmDeclaration = generateElmModule(parsedSource);
-        fs.writeFile(outputFile, elmDeclaration, 'utf8', callback);
+        const {
+          elmFile,
+          typescriptFile,
+        } = generateElmModule(parsedSource);
+
+        Promise.all([
+          write(elmOutput, elmFile),
+          write(tsOutput, typescriptFile),
+        ]).then(() => callback())
+          .catch(callback);
       } catch (ex) {
         callback(ex);
       }
