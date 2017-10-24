@@ -6,7 +6,6 @@ import { app, BrowserWindow } from 'electron';
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow: Electron.BrowserWindow;
-let cliqzApp: any;
 
 function createWindow() {
   // Create the browser window.
@@ -41,7 +40,6 @@ function createWindow() {
 // Some APIs can only be used after this event occurs.
 app.on('ready', createWindow);
 
-
 // Listen for sync message from renderer process
 // ipcMain.on('sync', (event, arg) => {
 //   console.log('SYNC MESSAGE', arg);
@@ -67,7 +65,6 @@ app.on('activate', () => {
     createWindow();
   }
 });
-
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.

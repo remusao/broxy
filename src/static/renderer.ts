@@ -1,5 +1,4 @@
 import { App } from 'browser-core';
-import { ipcRenderer } from 'electron';
 import * as WebSocket from 'ws';
 
 // Inject Elm App in the window
@@ -28,12 +27,14 @@ const elmApp = Broxy.fullscreen();
 let cliqzApp: any;
 // Run Cliqz in Electron!
 cliqzApp = new App();
-global.CLIQZ = {
+
+const cliqzGlobal: any = global;
+cliqzGlobal.CLIQZ = {
   app: cliqzApp,
 };
 
 elmApp.ports.receiveICliqzModules.send({
-  modules: cliqzApp.moduleList.map(m => m.name),
+    modules: cliqzApp.moduleList.map((m: any) => m.name),
 });
 
 cliqzApp.start().then(() => {
@@ -47,17 +48,12 @@ cliqzApp.start().then(() => {
 // be executed in the renderer process for that window.
 // All of the Node.js APIs are available in this process.
 
-
 // -------------------------------------------------------------------------- //
 // from Elm to Typescript (listen to Elm commands)
 // -------------------------------------------------------------------------- //
-elmApp.ports.requestISocksProxy.subscribe(() => {
-  ipcRenderer.send('getCliqzInfo');
-});
-
-const handleWebRequest = (data, respond) => {
+const handleWebRequest = (data: any, respond: any) => {
   const message = JSON.parse(data);
-  const webRequest = CLIQZ.app.modules['webrequest-pipeline'].background;
+  const webRequest = cliqzGlobal.CLIQZ.app.modules['webrequest-pipeline'].background;
   const eventName = message.functionName;
   console.log('received: ', message);
 
@@ -68,18 +64,18 @@ const handleWebRequest = (data, respond) => {
   // wrapping in a promise as eventHandler may or may not return one
   Promise.resolve()
     .then(() => webRequest[eventName](...message.args))
-    .then(response =>
+    .then((response) =>
        respond(
          JSON.stringify({
            response,
            responseId: message.uuid,
-         })
-       )
+         }),
+       ),
     );
 };
 
 const wss = new WebSocket.Server({ port: 8080 });
 
-wss.on('connection', ws =>
-  ws.on('message', data => handleWebRequest(data, ws.send.bind(ws)))
+wss.on('connection', (ws) =>
+  ws.on('message', (data) => handleWebRequest(data, ws.send.bind(ws))),
 );
