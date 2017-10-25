@@ -12,7 +12,6 @@ const webRequestEvents = [
 
 // Deal with main.js/Elm interop using ports
 // All message passing shall be converted here.
-
 export interface ISocksProxy {
   proxyPort: number;
   proxyHost: string;
@@ -24,21 +23,16 @@ export interface ICliqzModules {
 
 const elmApp = Broxy.fullscreen();
 
-let cliqzApp: any;
 // Run Cliqz in Electron!
-cliqzApp = new App();
-
-const cliqzGlobal: any = global;
-cliqzGlobal.CLIQZ = {
-  app: cliqzApp,
-};
+const cliqzApp = new App();
 
 elmApp.ports.receiveICliqzModules.send({
-    modules: cliqzApp.moduleList.map((m: any) => m.name),
+  modules: cliqzApp.moduleList.map(m => m.name),
 });
 
 cliqzApp.start().then(() => {
-  const info = cliqzApp.modules['proxy-peer'].background.proxyPeer.httpLifeCycleHijack.socksProxy.server.address();
+  const proxyPeerBackground = cliqzApp.modules['proxy-peer'].background;
+  const info = proxyPeerBackground.proxyPeer.httpLifeCycleHijack.socksProxy.server.address();
   elmApp.ports.receiveISocksProxy.send({
     proxyHost: info.address,
     proxyPort: info.port,
@@ -53,7 +47,7 @@ cliqzApp.start().then(() => {
 // -------------------------------------------------------------------------- //
 const handleWebRequest = (data: any, respond: any) => {
   const message = JSON.parse(data);
-  const webRequest = cliqzGlobal.CLIQZ.app.modules['webrequest-pipeline'].background;
+  const webRequest = cliqzApp.modules['webrequest-pipeline'].background;
   const eventName = message.functionName;
   console.log('received: ', message);
 
