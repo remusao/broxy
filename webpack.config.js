@@ -30,7 +30,7 @@ const configBase = {
         loader: 'ts-loader',
         exclude: excludeFolders,
         options: {
-          transpileOnly: true,
+          transpileOnly: false,
         },
       },
       {
@@ -67,8 +67,10 @@ module.exports = [
         title: 'Broxy',
       }),
       new ElmTypesPlugin({
-        inputFile: path.join(__dirname, 'src', 'static', 'renderer.ts'),
-        outputPath: path.join(__dirname, 'src', 'elm'),
+        tsInput: path.join(__dirname, 'src', 'static', 'renderer.ts'),
+        tsOutput: path.join(__dirname, 'src', 'elm'),
+        elmInput: path.join(__dirname, 'src', 'elm', 'Broxy.elm'),
+        elmOutput: path.join(__dirname, 'src', 'elm'),
       }),
     ],
   }, configBase),

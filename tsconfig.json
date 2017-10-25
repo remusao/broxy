@@ -1,6 +1,8 @@
 {
-    "compileOnSave": false,
+    "exclude": ["node_modules", "dist", "webpack.config.js"],
     "compilerOptions": {
+        "target": "es6",
+        "lib": ["dom", "es2016"],
         "allowJs": true,
         "moduleResolution": "node",
         "noUnusedLocals": true,

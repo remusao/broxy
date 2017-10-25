@@ -16,6 +16,10 @@
   "author": "remusao",
   "license": "MIT",
   "devDependencies": {
+    "@types/node": "8.0.46",
+    "@types/webpack": "3.0.13",
+    "@types/ws": "3.2.0",
+    "bufferutil": "3.0.2",
     "elm": "0.18.0",
     "elm-webpack-loader": "4.3.1",
     "eslint": "4.3.0",
@@ -28,6 +32,7 @@
     "ts-loader": "2.3.7",
     "tslint": "5.7.0",
     "tslint-loader": "3.5.3",
+    "utf-8-validate": "3.0.3",
     "webpack": "3.6.0"
   },
   "dependencies": {
@@ -40,6 +45,6 @@
     "text-encoding": "0.6.4",
     "tldjs": "2.2.0",
     "typescript": "2.5.3",
-    "ws": "^3.2.0"
+    "ws": "3.2.0"
   }
 }

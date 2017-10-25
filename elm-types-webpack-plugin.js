@@ -5,17 +5,20 @@ const elmModuleName = 'TsElmInterfaces';
 
 module.exports = class ElmTypesPlugin {
   constructor(options) {
-    this.inputFile = options.inputFile;
-    this.outputPath = options.outputPath;
-  }
-
-  get outputFile() {
-    return path.join(this.outputPath, `${elmModuleName}.elm`);
+    this.elmInput = options.elmInput;
+    this.elmOutput = options.elmOutput;
+    this.tsInput = options.tsInput;
+    this.tsOutput = options.tsOutput;
   }
 
   build(compiler, callback) {
     console.log('Generate Elm type from typescript interfaces...');
-    convert(this.inputFile, this.outputFile, (err) => {
+    convert({
+      elmInput: this.elmInput,
+      elmOutput: path.join(this.elmOutput, `${elmModuleName}.elm`),
+      tsInput: this.tsInput,
+      tsOutput: path.join(this.tsOutput, 'Broxy.d.ts'),
+    }, (err) => {
       if (err) {
         console.error('Error while generating Elm types', err);
       } else {
