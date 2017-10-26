@@ -29,7 +29,6 @@ module.exports = class ElmTypesPlugin {
   }
 
   apply(compiler) {
-    compiler.plugin('run', this.build.bind(this));
-    compiler.plugin('emit', this.build.bind(this));
+    compiler.plugin('before-compile', (_, cb) => this.build(compiler, cb));
   }
 };
